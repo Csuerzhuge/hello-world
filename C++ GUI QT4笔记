@@ -1,0 +1,20 @@
+第一章：QT入门
+
+1。QT和Unix的术语中，窗口部件(widget)就是用户界面中的一个可视化元素，通常有QMenuBar、QToolBar、QStatusBar等。应用程序一般选择QMainWindow或者QDialog作为它们的窗口。创建窗口部件时，标签通常都是隐藏的，我们可以先对其进行设置然后再显示它们。还支持HTML样式格式输出文本等
+
+2.如要使用命令构建qt程序，mac系统中一般要自己将qt的bin目录添加到环境变量
+使用qmake -project可构建与平台无关的项目文件，再对此文件qmake可生成一个平台相关的makefile文件，键入make即可构建此程序。还可通过qmake -tp vc hello.pro生成一个VS工程文件，或qmake -spec macx-xcode hello.pro生成xcode工程
+
+3.可使用布局管理器改变程序界面布局，三个主要的布局管理器类为：QHBoxLayout、QVBoxLayout、QGridLayout
+
+4.通过信号和槽的机制可以使程序响应用户的动作，connect(func1,SIGNAL(xxx),func2,SLOT(xxx))
+
+5.为什么要防止对头文件的多重包含？
+前置声明有什么好处？告诉C++编译程序将会使用到那些类，而不用马上包含它们（在头文件中不需要那些类的完整定义），可以使编译更快，这属于编程风格问题，在大的工程项目中尤为重要
+
+6.Qt由数个模块构成，每个模块都有自己的类库，最为重要的模块由QtCore、QtGui、QtNetWork，QtOpenGL，QtScript，QtSql，QtSvg和QtXml等
+
+7.moc即Qt的元对象编译器，必须对使用了Q_OBJEXT宏的类运行moc。Q_OBJECT宏声明了在每一个QObject子类中必须实现的一些内省函数，而moc工具则生成了这些实现。对于所有定义了信号和槽的类，在类定义开始处Q_OBJECT宏都是必要的。sinals和slots也是一个宏。
+信号和槽可以将对象联系在一起，并且不局限于图形用户界面的窗口部件联系，还可以用于QObject的任何子类中。
+
+8.搜索：designer即可在mac中启动designer，2但刚启动时默认是多个子窗口停靠的模式，新建一个工程，在偏好设置可以改成锚接模式
