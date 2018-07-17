@@ -1,0 +1,15 @@
+1.只要已有的代码是模块化的而且编写良好，就可以考虑重用代码节省时间
+
+2.include和require的功能几乎相同，二者的重要区别在于：执行失败后include只会给出警告而require会给出致命错误。这两个函数都有变体函数require_once(),include_once()，这两个变体函数确保被引入的文件只能被引用一次，当引用函数库时这很重要，能防止函数重复定义的问题。而且require_once和include_once运行速度较快。
+
+3.将被引入文件保存在web文档树之外或使用标准的文件扩展名对于web安全很重要。原因？防止脚本执行、防止别人阅读源码
+
+4.; Automatically add files before PHP document.
+; http://php.net/auto-prepend-file
+auto_prepend_file =
+
+; Automatically add files after PHP document.
+; http://php.net/auto-append-file
+auto_append_file =
+
+在php.ini中设置上面两项可以使得每个页面自动指向页眉页脚，其特性如include，即如果被包含的文件不存在则给出警告而非错误。
