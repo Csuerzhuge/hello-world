@@ -411,8 +411,7 @@ core/diagram目录下有各种图表的cpp文件，分别是饼状图、柱状�
   return QgsGeometry();
 }
 
-读取点坐标，转换成QgsGeometry类型，frompointXY的定位应该是基于旧版本中的frompoint作扩展
-
+读取点坐标，转换成QgsGeometry类型.
 4.std::unique_ptr< QgsAbstractGeometry > QgsGeometryFactory::fromPointXY( const QgsPointXY &point )
 {
   return qgis::make_unique< QgsPoint >( point.x(), point.y() );
