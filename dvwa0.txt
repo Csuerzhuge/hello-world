@@ -1,0 +1,40 @@
+一.环境配置
+本机下的配置
+虚拟机win7+xamp「win7直接在msdn下载原版镜像，不需要激活码就能进入系统（xp久非得要key），安装个firefox或chrome，到xamp官网选择一个版本下载」
+虚拟机kali amd64（debian6）（以后用用i386）「在kali官网选择镜像，下载以后在VM安装，自带了firefox，但也许需要自己装一个burpsuite pro，自带的社区版功能上稍微有点少」
+1.对于win7，安装好xamp环境后，修改config.inc.php.dist文件，将其扩展名改为php，并可以根据自己需要修改数据库的密码用户名等。然后修改.hwaccess文件，为特定主机开白名单。
+2.对于kali。配置好代理确保能访问另一主机的目录。需要做的工作有，在win7下cmd->ipconfig获取ip地址，在kali下的中断，ifconfig获取ip（也有其它命令），或者直接在网络设置的GUI界面可以看到ip、默认网关、子网掩码等信息。
+3.访问成功后，修改security level，默认情况下是immposible，很受打击，直接在dvwa首页的某个菜单可以找到修改页面入口
+
+
+遇到的问题：
+1.firefox浏览网页时会出现有的网页可以访问而有的不行。原因是代理的配置问题，如果配置了代理（以burpsuite默认情况下为例就是127.0.0.1:8080，charles就是8888...）如果firefox配置代理而代理未运行，那网页可能就访问不了
+。如果打开了代理还不行，那可能是配置的问题，比如配置ssl也走代理，但有的ssl不认，所以一般情况下配http走代理就行了，如果还希望在ssl下完成， 则需要证书，或者设置个例外（exception）。
+「此情形包括访问外部网络和局域网内对其它虚拟机、物理机的目录访问」
+2.无法启动burpsuite pro，无论是larry的还是sa***的，辅助工具可以启动，但主程序却出不来，在终端上尝试运行是报错的。原因，jdk版本不对，2018.2的kali默认安装了jdk9.0，版本较新，于是pro、们承受不来，需要到java官网下个老版本（1.8就行了）的jdk
+，然后更改系统所使用的jdk，此时需要用到uodate-alternatives这个jdk包管理工具，找到jdk的安装目录，为其设置编号，然后在管理包，选择相应编号的jdk作为java环境。修成功后pro可以成功运行
+
+二。Brute Force
+1、low
+直接在intruder中用个simple list爆破就足够了，这种情况主要看字典的大小了，虽然环境下密码是弱密码，实质上分析其代码，没有验证cookie状态，没有设置token，登陆失败不会锁定账户，对输入也没做过滤，直接采用动态的url拼接来查询数据库，所以如果不采用sql注入的方法，爆破无人阻挡
+如果采用sql注入的方法，直接在第一个输入框输入admin'#即可成功（不知为何admin'--不行）admin' or 1=1也可以通过，但这种情况成功的条件是：数据库中只有一条记录（因为源码后面好像判断了结果集的行数是否为1，如果有多行记录就不能满足这个条件）
+2、medium
+跟low的区别在于，加了个mysql_real_escape_string，和登陆失败3次？系统就休眠2秒，本质上不妨爆破，但增加了sql注入的难度，如果后台mysql的字符编码设置与默认字符编码出现了不对等，则可能会存在sql注入的利用
+3、high
+不仅增加了mysql_real_escape_string,在这个函数之前还有stripslpash的过滤机制，sql注入的可能性几乎不可能。同时，后台随机下方cookies和user_token（藏在表单的隐藏输入框中），每次请求时必须附上user_token。
+burpsuite貌似就失效了。此时采用脚本爆破。以python为例，用到urllib2、bs4。思路大致有两种，先手工试一次，抓包，记录cookie，然后构造header，利用bs4的解析功能，找到隐藏的input标签，在取返回的字典中键为balue的值，即为所需token。
+再准备一个字典（可以用cewl或者cupp生成，也可以去网上找现成啊，比如csdn），读取字典文件的每一行，去除空格，构造url，发送请求。如果返回的结果中，哪个长度不太一样，那这个应该就是payload了。
+第二种思路是，直接用脚本获取cookie并保存下来，具体用到cookiejar这个库
+4.immposible
+不可能的。sql注入不了，登陆错误三次会锁定账户15分钟，爆破也不好使了。PDO模式针对sql注入的防御在读升级，使用预编译语句
+
+小tips：
+1.对于终端，可以使用export http_proxy=http://address:port进行代理设置，使得burpsuite可以监听终端流量。使用unset http_proxy可以取消代理的设置。
+
+2.使用uname -a可以查看linux的发行版，比如查到我使用的debian6...
+
+3./etc/apt sources.list是软件更新的源服务器地址，有一些公共的服务器，如阿里】中科大等等的...可以添加到里面，使apt-get update更新源。用apt-cache search 软件包名称 可以在仓库中查找含有关键字的全部软件包
+想要看软件包详细信息可以 apt-cache show 软件包名称。要安装则是apt-get install。
+
+4.deb文件是debian系列linux的安装文件，可以使用dpkg -i *.deb的命令安装软件（还有其它命令）。除了使用这些命令安装，还可以考虑使用源代码安装的方式，一般结合gcc make makefile等命令
+
