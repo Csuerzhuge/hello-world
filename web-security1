@@ -1,0 +1,76 @@
+1.body、url与cookie中的post方法有什么区别
+
+2.DNS解析的过程：输入域名，电脑在本机Hosts文件查找有无对应的ip地址，有则将请求发送到该ip，若没有则继续查找DNS服务器，如果DNS服务器没配置那就没办法了。。
+本机Host文件位于/etc/hosts文件中。在httpd.conf的ErrorLog项目中有web日志存放位置
+
+3.PhishTank是互联网上免费提供网址黑名单的组织之一，Google公开的其内部使用的SafeBrowsing API，可在产品接入获取恶意网址库。主流浏览器都支持EV SSL整数，以增强对安全网站的识别
+
+4.IE8率先推出XSS Filter功能以对抗反射型XSS，然后FireFox推出Cotent Security Policy(CSP)
+
+5.FireFox中有一个特殊的协议chrome://，其有一个扩展图标，通过加载这个扩展可以判断吧是否位firefox
+
+6.通过XSS Payload有可能获得客户端IP地址，但一般需要借助第三方软件完成，如调用java applet的接口获取客户端的本地IP地址。XSS AttackAPI框架中就有获取本地IP地址的API。一些ActiveX控件也有可能提供
+
+7.XSS攻击平台
+Attack API
+BeEF
+XSS-Proxy
+
+8.终极武器：XSS Worm
+
+9.调试javascript的工具
+firebug
+IE8 Develop tool
+Fiddler（fiddler支持脚本编程）
+HttpWatch
+
+10.XSS构造技巧
+1）利用字符编码
+2）绕过长度限制「将payload藏在location.hash、或远程js中，如果能控制两个或以上文本框，还可以考虑巧妙构造注释符号进行攻击」
+3）使用<base>标签（此标签可以出现在页面的任何地方，并作用于标签后的所有标签，利用此可进行相对路径劫持、伪造图片等）
+
+11.利用window.name可以实现数据跨域传递
+也可以巧妙低缩短payload的长度
+
+12.从漏洞利用的角度看，存储型XSS比反射型XSS用处大，因为其可以在用户访问正常url时出发，而反射型XSS会修改一个正常的URL，并要攻击者发送给用户点击，攻击门槛较高
+
+13.Apache Expect Header XSS
+
+14.XSS攻击不止基于HTML，在Flash中同样可能造成XSS攻击
+
+15.OWASP为Flash安全研究设立了一个wiki页面
+
+16.XSS防御
+流行的浏览器都内置了一些XSS防御措施，如firefox的CSP（内容保护策略）、Noscript扩展，IE 8 内置的XSS Filter
+1）HttpOnly
+解决XSS背后的cookie劫持
+2）输入检查
+网上有许多开源xss filter实现，但也存在很多问题。
+filter不应改变正常用户数据的语义，也要防范攻击者调用远程js实施攻击
+3）输出检查
+「安全的编码函数：htmlentities、htmlspecialchars等、encodejavascript，输出的变量要在引号内」
+javascriptecode更加严格，除了数字字母外的所有字符均使用十六进制方式编码
+「在script标签输出
+在事件中输出
+在css中输出
+在地址中输出（注意防止伪协议）」
+如检查url可检查是否为http开头若不是则自动补http，以防伪协议攻击
+17.xss的本质是html注入，用户的数据被当成html代码的一部分来执行，混淆了原来的语义。
+
+18.处理富文本的问题。如何区分富文本和XSS攻击代码？
+使用白名单，避免使用黑名单
+有一些成熟的开源项目实现队富文本的XSS检查
+Anti-Samy
+HTMLPurify
+
+19.防御DOM Based XSS
+注意检查javascript输出到html页面的必经之路的参数是否能够为用户自用控制，
+像document.write() innerHTML outerHTML等等
+
+总结：
+XSS攻击原理：
+
+XSS防御方法：
+
+XSS攻击方法：
+

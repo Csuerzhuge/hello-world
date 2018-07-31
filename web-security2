@@ -1,0 +1,23 @@
+1.CSRF（cross site request fordgery）
+
+2.浏览器的cookie策略
+
+3.P3P头的副作用
+
+4.get、post
+
+5.Flash CSRF
+
+6.CSRF Worm
+
+7.CSRF防御
+1）验证码
+2）Referer Check
+
+8.Anti CSRF Token
+
+9.区分XSRF和CSRF
+
+10.点击劫持（Clickjacking）
+
+11.HTML 5安全
