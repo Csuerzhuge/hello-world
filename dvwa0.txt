@@ -25,7 +25,7 @@
 burpsuite貌似就失效了。此时采用脚本爆破。以python为例，用到urllib2、bs4。思路大致有两种，先手工试一次，抓包，记录cookie，然后构造header，利用bs4的解析功能，找到隐藏的input标签，在取返回的字典中键为balue的值，即为所需token。
 再准备一个字典（可以用cewl或者cupp生成，也可以去网上找现成啊，比如csdn），读取字典文件的每一行，去除空格，构造url，发送请求。如果返回的结果中，哪个长度不太一样，那这个应该就是payload了。
 第二种思路是，直接用脚本获取cookie并保存下来，具体用到cookiejar这个库
-4.immposible
+4.impossible
 不可能的。sql注入不了，登陆错误三次会锁定账户15分钟，爆破也不好使了。PDO模式针对sql注入的防御在读升级，使用预编译语句
 
 小tips：
@@ -37,4 +37,63 @@ burpsuite貌似就失效了。此时采用脚本爆破。以python为例，用�
 想要看软件包详细信息可以 apt-cache show 软件包名称。要安装则是apt-get install。
 
 4.deb文件是debian系列linux的安装文件，可以使用dpkg -i *.deb的命令安装软件（还有其它命令）。除了使用这些命令安装，还可以考虑使用源代码安装的方式，一般结合gcc make makefile等命令
+
+三、XSS攻击
+1.low
+2.medium
+3.high
+4.impossible
+
+四、File Inclusion
+
+五、File Upload
+
+
+六、SQL Injection
+1.low
+源代码采用GET方法传递参数，并没有过滤就直接与查询字符串直接拼接。首先采用一个'，' or 1=1等参数验证sql注入类型，看是数值型还是字符串型，很容易验证出sql注入漏洞，对于成功执行和非成功执行的语句都有明显的回显，所以这里更重要的在于如何利用漏洞。
+思路如下：
+0）.准备工作
+其中准备工作包括查看那些字符被过滤或者转义，确认当前查询语句所返回的列数，好方便后续构造union查询。验证方法采用select null，或者union select 1,2,...等的方法。
+
+1）.挖掘出当前数据库名
+mysql中database()函数的返回值是当前数据库名，version()函数为当前mysql版本。
+因此，1' or 1=1 union select 1,database()#就可很好地工作，由于#没有被过滤，所以可使用#注释掉原语句后面的部分，如果#被过滤，也可尝试--，或者构造单引号平衡语句。
+2）.挖掘数据库有多少张表、表名为何
+得到了数据库名后，可利用mysql数据库系统内的数据可information_schema.tables，挖掘相关的关系表，正常来说，select table_name from information_schema.tables where table_schema=database()可以得到当前数据库的表
+因此，在union没被过滤时，可构造这样的语句获取关系名。
+3）.挖掘表的字段
+同样的道理，select column_name from information_schema.columns where table_name='test'可获得关系中的各个字段
+4）.脱裤
+
+2.medium
+与low不同的是，通过GET获取的输入经过了mysql_real_escape_string函数的过滤，但由于这是数值型的漏洞，所以过滤毫无意义，依旧可使用low中的方法取得相关信息
+
+3.high
+
+七、SQL Injection（Blind）
+1.low
+源代码采用GET方法传递参数，并没有过滤就直接与查询字符串直接拼接。但不同之处在于，回显的信息只表达yes或no，因此对于判断语句的执行情况造成了一定的麻烦。此时即需要盲注，逐字节地抽取信息。
+常见的思路有布尔盲注和时间盲注。（暂不考虑带外通信）。
+布尔盲注即，利用SQL语句的布尔值（反映到服务器的回显）判断语句的执行情况，拿推断数据库名来说，由于回显信息只有yes或no，所以按照前一节的方法行不通，要得到数据库名，只能“猜”，构造逻辑语句length(database())=1，如果数据库名长度为1，则上语句返回true
+，否则返回false，利用这种回显，可锁定数据库名的长度。得到长度以后，在利用数据库中取子船的函数，如在mysqll中的substr，判断字符串每一位的字符是什么，常用的高效方法是二分搜索法，判断ascii(substr(database(),1,1))应取多少，得到响应位置的字符，最终得到数据库名。
+以同样的思路枚举表数目、表长度、表名、列数、列名等等
+2.medium
+数据采用post方式传输，可借助抓包工具篡改请求发送到服务器判断，原理同上。
+3.high
+sql注入点在cookie处，因此可修稿请求处的cookie，依旧同上。但这里服务器源码中还加入了，若返货数据为空则延迟3到5秒，干扰了时间延迟的盲注，所以在选择的时间延迟长短可以稍微放长些。（超过30s mysql会报错，并且暴露了目录）
+4.impossible
+对传入的id作了是否为数字的判定，而后采用预编译语句处理sql，强制规定返回的数据行数为1时才逻辑正确，PDO模型预防注入。
+
+小技巧：有时候如果'被过滤，可以考虑采用16进制编码或者其它编码形式绕过
+还可使用sqlmap进行测试
+测试注入点：python sqlmap.py -u "http://xx.xx.xx.xx/dvwa/vulnerabilities/sqli/?Submit=Submit&id=1#" --cookie="security=low; PHPSESSID=cgbdjjf53ajo4lbromuc44q903"
+爆库：python sqlmap.py -u "http://xx.xx.xx.xx/dvwa/vulnerabilities/sqli/?Submit=Submit&id=1#" --cookie="security=low; PHPSESSID=cgbdjjf53ajo4lbromuc44q903" --dbs
+爆表：python sqlmap.py -u "http://xx.xx.xx.xx/dvwa/vulnerabilities/sqli/?Submit=Submit&id=1#" --cookie="security=low; PHPSESSID=cgbdjjf53ajo4lbromuc44q903" --tables -D db_name
+爆字段：python sqlmap.py -u "http://xx.xx.xx.xx/dvwa/vulnerabilities/sqli/?Submit=Submit&id=1#" --cookie="security=low; PHPSESSID=cgbdjjf53ajo4lbromuc44q903" --columns -T tb_name -D db_name
+脱裤：python sqlmap.py -u "http://xx.xx.xx.xx/dvwa/vulnerabilities/sqli/?Submit=Submit&id=1#" --cookie="security=low; PHPSESSID=cgbdjjf53ajo4lbromuc44q903" --dump -D db_name(如遇到哈希密码sqlmap会尝试破解)
+sql-shell：python sqlmap.py -u "http://xx.xx.xx.xx/dvwa/vulnerabilities/sqli/?Submit=Submit&id=1#" --cookie="security=low; PHPSESSID=cgbdjjf53ajo4lbromuc44q903" --sql-shell
+
+sqlmap参考教程：https://www.binarytides.com/sqlmap-hacking-tutorial/、https://dev.mysql.com/doc/mysql-shell-excerpt/8.0/en/mysql-shell-commands.html、https://github.com/sqlmapproject/sqlmap/wiki/Usage
+
 
